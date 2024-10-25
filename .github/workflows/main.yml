@@ -22,7 +22,7 @@ jobs:
         distribution: 'temurin'
 
     - name: Build with Maven
-      run: mvn clean install
+      run: mvn -f ./encryption/pom.xml clean install
 
     - name: Run tests
-      run: mvn test
+      run: mvn -f ./encryption/pom.xml test
