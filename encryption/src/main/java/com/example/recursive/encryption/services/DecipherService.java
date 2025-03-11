@@ -52,7 +52,7 @@ public class DecipherService {
         return value;
     }
 
-    private String decryptString(String value) {
+    String decryptString(String value) {
         try {
             return criptografic.decipher(value);
         } catch (Exception e) {

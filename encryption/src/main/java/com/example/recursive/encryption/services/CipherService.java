@@ -54,7 +54,7 @@ public class CipherService {
         return value;
     }
 
-    private String encryptString(String value) {
+    String encryptString(String value) {
         try {
             return criptografic.cipher(value);
         } catch (Exception e) {
