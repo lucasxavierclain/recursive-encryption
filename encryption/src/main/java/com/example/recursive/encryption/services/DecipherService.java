@@ -16,6 +16,7 @@ import static org.slf4j.helpers.Reporter.info;
 @Service
 public class DecipherService {
 
+    private static final int MAX_DEPTH = 64;
     private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
     private final Criptografic criptografic = new Criptografic();
 
@@ -27,24 +28,30 @@ public class DecipherService {
         return encryptedValueToJSON;
     }
 
-    private Map<String, Object> decryptMap(Map<String, Object> map) {
+    private Map<String, Object> decryptMap(Map<String, Object> map, int depth) {
+        if (depth > MAX_DEPTH) {
+            throw new IllegalArgumentException("Input exceeds maximum nesting depth of " + MAX_DEPTH);
+        }
         Map<String, Object> decryptedMap = new HashMap<>();
-        map.forEach((key, value) -> decryptedMap.put(key, decryptObject(value)));
+        map.forEach((key, value) -> decryptedMap.put(key, decryptObject(value, depth + 1)));
         return decryptedMap;
     }
 
-    private List<Object> decryptList(List list) {
+    private List<Object> decryptList(List list, int depth) {
+        if (depth > MAX_DEPTH) {
+            throw new IllegalArgumentException("Input exceeds maximum nesting depth of " + MAX_DEPTH);
+        }
         List<Object> decryptedList = new ArrayList<>();
-        list.forEach(element -> decryptedList.add(decryptObject(element)));
+        list.forEach(element -> decryptedList.add(decryptObject(element, depth + 1)));
         return decryptedList;
     }
 
-    private Object decryptObject(Object value) {
+    private Object decryptObject(Object value, int depth) {
         if (Objects.nonNull(value)) {
             if (value instanceof Map) {
-                return decryptMap((Map<String, Object>) value);
+                return decryptMap((Map<String, Object>) value, depth);
             } else if (value instanceof List) {
-                return decryptList((List) value);
+                return decryptList((List) value, depth);
             } else if (value instanceof String) {
                 return decryptString((String) value);
             }
@@ -76,10 +83,10 @@ public class DecipherService {
         try {
             if (jsonElement.isJsonObject()) {
                 Map map = gson.fromJson(jsonElement, Map.class);
-                return gson.toJson(decryptMap(map));
+                return gson.toJson(decryptMap(map, 0));
             } else if (jsonElement.isJsonArray()) {
                 List list = gson.fromJson(jsonElement.getAsJsonArray(), List.class);
-                return gson.toJson(decryptList(list));
+                return gson.toJson(decryptList(list, 0));
             }
         } catch (Exception e) {
             info("Error decrypting the data");
